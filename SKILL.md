@@ -1,119 +1,121 @@
 ---
 name: designing-in-figma
-description: Use when designing a site or an app in Figma through the Figma MCP (create_new_file, use_figma, get_screenshot) — a new or existing file, a moodboard, a UI kit, components, a first mockup, declining pages — or when someone asks for « the Figma design of… », « the mockups of… », wants icons drawn, extra colors, a shadow or effect, all pages at once, or says they will review at the end.
+description: Use when designing a website or an app in Figma through the Figma MCP (create_new_file, use_figma, get_screenshot) — a new or existing file, a moodboard, a UI kit, components, a first mockup, deriving the remaining pages — or when someone asks for "the Figma design of…", "the mockups for…", wants icons drawn, extra colors, a shadow or an effect, all pages at once, or says they will review at the end.
 ---
 
-# Concevoir un site ou une app dans Figma
+# Designing a website or an app in Figma
 
-## Vue d'ensemble
+## Overview
 
-**Le moodboard décide, les variables portent, les composants répètent, une page se valide avant les autres.** Rien ne se déduit en silence : une couleur, une police, un effet, une disposition sont des questions posées à l'utilisateur, jamais des choix faits à sa place. Le délai réduit le périmètre — moins de pages, moins d'états — jamais une phase ni une porte.
+**The moodboard decides, variables carry, components repeat, one page is validated before the others.** Nothing is inferred silently: a color, a typeface, an effect, a layout are questions asked to the user, never choices made on their behalf. A deadline shrinks the scope — fewer pages, fewer states — never a phase or a gate.
 
-Les skills officiels de Figma décrivent l'API, ce skill décrit la méthode. À charger avant tout appel : `figma-use` avant chaque `use_figma`, `figma-create-new-file` avant `create_new_file`, `figma-generate-library` dès qu'un composant se crée. Charger les schémas des outils Figma en un seul `ToolSearch` avec `select:`.
+Figma's official skills describe the API; this skill describes the method. Load before any call: `figma-use` before every `use_figma`, `figma-create-new-file` before `create_new_file`, `figma-generate-library` as soon as a component is created. Load the Figma tool schemas in a single `ToolSearch` with `select:`.
 
-Ce skill se copie tel quel dans `~/.claude/skills/` ou dans le `.claude/skills/` d'un projet. Si le projet a son propre document de standards Figma, celui-ci l'emporte là où il contredit ce skill.
+This skill can be copied as is into `~/.claude/skills/` or into a project's `.claude/skills/`. If the project has its own Figma standards document, that document wins wherever it contradicts this skill.
 
-## Le plan gratuit, posé en tête
+**Language.** Page, Section, variable, component and layer names follow the **user's language**, consistently across the whole file: the English names used below (`Components`, `Color`, `Summary`, `Button`) are translated when the user works in another language (`Composant`, `Couleur`, `Synthèse`, `Bouton`). Mockup content is written in the product's language.
 
-- **Trois pages par fichier, et pas une de plus : `Design`, `Composant`, `Moodboard`.** Tout le reste est une Section. Ce qui est remplacé va dans une Section `Archive` en bout de `Design`, jamais à la corbeille.
-- **Un seul mode par collection de variables.** Pas de Light/Dark ni de Mobile/Desktop par modes : les écarts entre formats se règlent variante par variante.
-- **Pas de bibliothèque d'équipe.** Tout vit dans le fichier.
-- L'API ne crée pas de dossier Figma : un dossier se crée à la main, et l'utilisateur en donne le lien.
+## The free plan, stated up front
 
-## Les trois portes
+- **Three pages per file, not one more: `Design`, `Components`, `Moodboard`.** Everything else is a Section. Whatever gets replaced goes into an `Archive` Section at the end of `Design`, never to the trash.
+- **One mode per variable collection.** No Light/Dark or Mobile/Desktop through modes: differences between formats are handled variant by variant.
+- **No team library.** Everything lives in the file.
+- The API cannot create a Figma folder: the user creates it by hand and provides the link.
 
-| Porte | Après                          | Ce qu'on montre                                                                        |
-| ----- | ------------------------------ | -------------------------------------------------------------------------------------- |
-| 1     | le moodboard analysé           | la lecture du moodboard et la `Synthèse` : chaque choix validé question par question   |
-| 2     | l'UI kit et les composants     | capture de la page `Composant`, audits vides                                           |
-| 3     | la première maquette retouchée | la page validée par l'utilisateur dans Figma, ses retouches remontées dans les masters |
+## The three gates
 
-Une porte est un arrêt : on montre, on pose la question, on termine son tour, on attend. « Je regarderai après » dit **quand** l'utilisateur valide, pas **si** : on montre la première page et on attend quand même.
+| Gate | After                         | What is shown                                                                               |
+| ---- | ----------------------------- | ------------------------------------------------------------------------------------------- |
+| 1    | the moodboard analysis        | the reading of the moodboard and the `Summary`: every choice validated question by question |
+| 2    | the UI kit and the components | a screenshot of the `Components` page, empty audits                                         |
+| 3    | the first mockup, retouched   | the page validated by the user in Figma, their retouches pushed back into the masters       |
 
-## Phase 0 — Cadrage, avant tout appel
+A gate is a stop: show, ask, end the turn, wait. "I'll review at the end" says **when** the user validates, not **whether**: the first page is shown and the wait happens anyway.
 
-Poser ces questions par lots de quatre au plus, et n'ouvrir aucun outil avant les réponses :
+## Phase 0 — Scoping, before any call
 
-1. **Un fichier Figma existe-t-il ?** Oui → son lien. Non → où le créer ? Recommander un **dossier Figma** créé par l'utilisateur, dont il donne le lien ; sinon, à la racine (brouillons).
-2. **Site ou app**, et la liste des pages ou écrans.
-3. **Formats** : recommander **mobile first, puis desktop** ; l'utilisateur tranche.
-4. **Librairie d'icônes** : recommander Material Design Icons. Aucune icône ne sera dessinée.
-5. **Langue des noms** (celle de l'utilisateur) et **langue du contenu** (celle du produit).
-6. **Stack et assets** : une stack à polices recommandées (Shopify…) ? Un logo, des photos ?
+Ask these questions in batches of four at most, and open no tool before the answers:
 
-## Phase 1 — Fichier, moodboard, synthèse
+1. **Does a Figma file already exist?** Yes → its link. No → where should it be created? Recommend a **Figma folder** (project) created by the user, who provides its link; otherwise the root (drafts).
+2. **Website or app**, and the list of pages or screens.
+3. **Formats**: recommend **mobile first, then desktop**; the user decides.
+4. **Icon library**: recommend Material Design Icons. No icon will ever be drawn.
+5. **Language of names** (the user's) and **language of content** (the product's).
+6. **Stack and assets**: a stack with recommended fonts (Shopify…)? A logo, photos?
 
-1. Créer ou renommer les trois pages (`references/setup.md` §1). Sur `Moodboard`, une Section `Moodboard 1` avec quatre sous-sections **vides** : `Design`, `Couleur`, `Typo`, `À éviter`. Arrêt : l'utilisateur remplit. S'il demande des inspirations, les chercher **uniquement sur Dribbble** (`references/setup.md` §4).
-2. **Analyser** : capturer chaque sous-section et écrire ce qu'on y voit — couleurs candidates avec leur valeur et l'image d'origine, familles et graisses, grille, densité, rayons, traitement des images, et **tout effet particulier** : ombre, dégradé, flou, bordure, texture, illustration, indice de mouvement.
-3. **Questionner** : un choix par question, avec les options vues dans le moodboard ; chaque effet repéré fait l'objet d'une question explicite — le veut-on, où. Par lots de quatre au plus, jusqu'à épuisement.
-4. Écrire les décisions dans une sous-section `Synthèse` de `Moodboard 1`. **Porte 1.**
+## Phase 1 — File, moodboard, summary
+
+1. Create or rename the three pages (`references/setup.md` §1). On `Moodboard`, a `Moodboard 1` Section with four **empty** sub-sections: `Design`, `Color`, `Typography`, `Avoid`. Stop: the user fills it in. If they ask for inspiration, search **Dribbble only** (`references/setup.md` §4).
+2. **Analyze**: screenshot each sub-section and write down what is there — candidate colors with their value and source image, families and weights, grid, density, radii, image treatment, and **every specific effect**: shadow, gradient, blur, border, texture, illustration, hint of motion.
+3. **Ask**: one choice per question, with the options seen in the moodboard; every effect spotted gets an explicit question — is it wanted, and where. In batches of four at most, until nothing is left.
+4. Write the decisions into a `Summary` sub-section of `Moodboard 1`. **Gate 1.**
 
 ## Phase 2 — UI kit
 
-Sur `Composant`, Section `UI Kit` (`references/ui-kit.md`). Quatre collections en une couche : `color` minimaliste — une primary, jusqu'à trois secondaires, les neutres de blanc à noir, succès et erreur — `space` sur l'échelle 4 … 128, `radius`, `type`. Sept styles de texte (H1 à H4, Body, Small, Caption), en deux groupes si deux formats. Polices **Google Fonts** par défaut, sauf stack à polices recommandées. Un jeu `Icon` importé de la librairie choisie. Les atomes avec tous leurs états. Chaque jeu de variantes en **auto-layout, hug sur les deux axes**, sinon les variantes sont coupées.
+On `Components`, a `UI Kit` Section (`references/ui-kit.md`). Four single-layer collections: `color` kept minimal — one primary, up to three secondaries, neutrals from white to black, success and error — `space` on the 4 … 128 scale, `radius`, `type`. Seven text styles (H1 to H4, Body, Small, Caption), in two groups if two formats were chosen. **Google Fonts** by default, unless the stack recommends its own fonts. An `Icon` set imported from the chosen library. The atoms with all their states. Every variant set in **auto-layout, hugging both axes**, otherwise variants get clipped.
 
-## Phase 3 — Composants
+## Phase 3 — Components
 
-Sur `Composant`, une Section par famille (`references/components.md`) : navigation, footer, formulaires, cartes, puis **toutes les sections du produit**. Les états — vide, chargement, erreur, succès — sont des variantes ; `Breakpoint` n'existe que si deux formats ont été retenus. Audits, capture. **Porte 2.**
+On `Components`, one Section per family (`references/components.md`): navigation, footer, forms, cards, then **every section of the product**. States — empty, loading, error, success — are variants; `Breakpoint` exists only if two formats were chosen. Audits, screenshot. **Gate 2.**
 
-## Phase 4 — Première maquette
+## Phase 4 — First mockup
 
-Une seule page, choisie avec l'utilisateur, dans le premier format, assemblée **uniquement d'instances**, dans une Section de `Design` (`references/setup.md` §3). Capture, audits. **Porte 3** : l'utilisateur retouche directement dans Figma, puis valide. Relire alors la page validée et **remonter ses retouches dans les masters** (`references/components.md` §6) — sinon les autres pages ne les auront pas.
+A single page, chosen with the user, in the first format, assembled **from instances only**, inside a Section of `Design` (`references/setup.md` §3). Screenshot, audits. **Gate 3**: the user retouches directly in Figma, then validates. Then re-read the validated page and **push their retouches back into the masters** (`references/components.md` §6) — otherwise the other pages will not have them.
 
-## Phase 5 — Déclinaison
+## Phase 5 — Deriving the other pages
 
-Les autres pages, dans l'ordre : instance telle quelle, instance dérogée, nouvelle variante, et seulement ensuite nouveau composant. Puis le second format, dérivé du premier par clonage. Avant de rendre la main : audits sur chaque page, Sections rangées, captures regardées.
+The remaining pages, in this order: instance as is, instance with overrides, new variant, and only then a new component. Then the second format, derived from the first by cloning. Before handing back: audits on every page, Sections tidied, screenshots looked at.
 
-## Règles non négociables
+## Non-negotiable rules
 
-1. **Tout en variables** : couleur, espacement, padding, rayon, taille et interligne, famille et graisse. Zéro valeur nue.
-2. **L'échelle** : `4, 8, 12, 16, 20, 24, 28, 32, 36, 40, 48, 56, 64, 72, 80, 96, 112, 128` — on choisit dedans, on n'en sort pas.
-3. **Couleurs minimalistes** : une primary, une à trois secondaires au plus, les neutres, succès et erreur. Rien d'autre sans ligne dans la `Synthèse`.
-4. **Icônes importées** d'une seule librairie, jamais dessinées.
-5. **Jeux de variantes en auto-layout et hug**, variantes en largeur fixe.
-6. **Tout bloc présent deux fois est un composant**, master sur `Composant`, page = instances.
-7. **Une page validée avant les autres.**
-8. **Consistance** : un seul style par rôle — un bouton, un titre de section, une carte ont une seule recette.
-9. **Jamais supprimer** : Section `Archive`, renommée avec la date.
-10. **Rien de déduit en silence** : police, couleur, effet, disposition — une question, une réponse, une ligne dans la `Synthèse`.
+1. **Everything in variables**: color, spacing, padding, radius, size and line height, family and weight. Zero bare values.
+2. **The scale**: `4, 8, 12, 16, 20, 24, 28, 32, 36, 40, 48, 56, 64, 72, 80, 96, 112, 128` — pick from it, never leave it.
+3. **Minimal colors**: one primary, one to three secondaries at most, the neutrals, success and error. Nothing else without a line in the `Summary`.
+4. **Icons imported** from a single library, never drawn.
+5. **Variant sets in auto-layout and hug**, variants with a fixed width.
+6. **Any block present twice is a component**, master on `Components`, page = instances.
+7. **One page validated before the others.**
+8. **Consistency**: one recipe per role — a button, a section title, a card each have a single recipe.
+9. **Never delete**: `Archive` Section, renamed with the date.
+10. **Nothing inferred silently**: typeface, color, effect, layout — one question, one answer, one line in the `Summary`.
 
-## Rationalisations à reconnaître
+## Rationalizations to recognize
 
-| Ce qu'on se dit                                                         | Ce qui est vrai                                                                                                                                   |
-| ----------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------- |
-| « Elle a dit qu'elle regarderait à la fin, j'enchaîne sans validation » | « Après » dit quand elle valide, pas si. On montre la première page et on attend.                                                                 |
-| « Pas de fausse pause qui contredirait sa demande »                     | Les portes ne sont pas des pauses : c'est là que le travail devient le sien. Sans elles, cinq pages à refaire au lieu d'une.                      |
-| « Des icônes maison, ça fera plus perso, c'est la bonne demande »       | Un glyphe dessiné est hors grille, introuvable dans le code, refait à chaque projet. La personnalité vient du moodboard. On propose la librairie. |
-| « Pas de contrainte de marque, je choisis la typo seul »                | Aucune police sans moodboard. Sans moodboard, on le crée et on attend qu'il soit rempli.                                                          |
-| « Une vraie interface a besoin de nuances, deux ou trois par teinte »   | Les états se font avec `primary-hover` et les neutres. Une teinte de plus est une décision écrite dans la `Synthèse`, pas une nuance.             |
-| « Une ombre par défaut soignée, réglable ensuite »                      | Un effet non validé est une décision prise à la place de l'utilisateur. On demande : le veut-on, où, comment.                                     |
-| « Une page Fondations, une page Composants, cinq pages de site »        | Trois pages. Le reste, ce sont des Sections.                                                                                                      |
-| « Je pars sur des placeholders pour ne pas bloquer »                    | Rien ne se construit avant la porte 1. Le temps gagné se perd à refaire.                                                                          |
-| « `get_variable_defs` suffit pour vérifier »                            | Il liste les variables, pas les nœuds déliés. Les audits sont des scripts, dans un appel séparé.                                                  |
+| What you tell yourself                                            | What is true                                                                                                                       |
+| ----------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------- |
+| "She said she'd review at the end, I'll go on without validation" | "At the end" says when she validates, not whether. Show the first page and wait.                                                   |
+| "No fake pause that would contradict her request"                 | Gates are not pauses: they are where the work becomes hers. Without them, five pages to redo instead of one.                       |
+| "Hand-drawn icons feel more personal, it's the right request"     | A drawn glyph is off-grid, unfindable in code, redone on every project. Personality comes from the moodboard. Propose the library. |
+| "No brand constraint, I'll pick the typography myself"            | No typeface without a moodboard. Without a moodboard, create it and wait until it is filled.                                       |
+| "A real interface needs shades, two or three per hue"             | States are done with `primary-hover` and the neutrals. One more hue is a decision written in the `Summary`, not a shade.           |
+| "A tasteful default shadow, adjustable later"                     | An unvalidated effect is a decision made in the user's place. Ask: is it wanted, where, how.                                       |
+| "A Foundations page, a Components page, five site pages"          | Three pages. The rest are Sections.                                                                                                |
+| "I'll start with placeholders so I don't block"                   | Nothing gets built before gate 1. Time saved is lost redoing.                                                                      |
+| "`get_variable_defs` is enough to verify"                         | It lists variables, not unbound nodes. Audits are scripts, in a separate call.                                                     |
 
-## Signaux d'alerte — s'arrêter
+## Red flags — stop
 
-- « fais toutes les pages d'un coup », « je regarderai après », « dessine-moi des icônes », « ajoute un vert et un ocre », « une ombre comme sur ce site »
-- une police, un hex ou un effet sans ligne dans la `Synthèse`
-- un frame de page créé avant la porte 2
-- une quatrième page Figma
-- `create_new_file` sans avoir demandé si un fichier existe et où le créer
-- `.remove()` sur quoi que ce soit
+- "do all the pages at once", "I'll review at the end", "draw me some icons", "add a green and an ochre", "a shadow like on that site"
+- a typeface, a hex or an effect with no line in the `Summary`
+- a page frame created before gate 2
+- a fourth Figma page
+- `create_new_file` without having asked whether a file exists and where to create it
+- `.remove()` on anything
 
-## Avant chaque porte — obligatoire
+## Before every gate — mandatory
 
-- [ ] Skills officiels chargés avant le premier appel d'écriture
-- [ ] Inventaire lu avant de construire (`references/audits.md` §0) ; rien construit en double
-- [ ] Audits relancés dans un appel séparé, toutes les listes vides : §1 valeurs hors variable, §3 jeux de variantes (porte 2), §2 débordement et §6 titres (portes 3 et suivantes), §7 Sections
-- [ ] Captures regardées, dans chaque format retenu
-- [ ] Rien supprimé : ce qui est remplacé est dans `Archive`, daté
-- [ ] Message : ce qui a été fait (noms et identifiants), les questions ouvertes, ce que l'utilisateur doit valider — puis fin du tour
+- [ ] Official skills loaded before the first write call
+- [ ] Inventory read before building (`references/audits.md` §0); nothing built twice
+- [ ] Audits re-run in a separate call, every list empty: §1 unbound values, §3 variant sets (gate 2), §2 overflow and §6 headings (gate 3 and later), §7 Sections
+- [ ] Screenshots looked at, in every chosen format
+- [ ] Nothing deleted: whatever was replaced is in `Archive`, dated
+- [ ] Message: what was done (names and ids), open questions, what the user must validate — then end the turn
 
-## Références
+## References
 
-| Fichier                    | Quand l'ouvrir                                                                              |
-| -------------------------- | ------------------------------------------------------------------------------------------- |
-| `references/setup.md`      | phase 1 : pages, moodboard, inspirations Dribbble, disposition de `Design`                  |
-| `references/ui-kit.md`     | phase 2 : inventaire exact des variables, styles, icônes, atomes                            |
-| `references/components.md` | phases 3 à 5 : familles obligatoires, états, nommage, réutilisation, remontée des retouches |
-| `references/audits.md`     | avant chaque porte, après toute suppression de variable, pour mesurer un contraste          |
+| File                       | When to open it                                                                  |
+| -------------------------- | -------------------------------------------------------------------------------- |
+| `references/setup.md`      | phase 1: pages, moodboard, Dribbble inspiration, `Design` page layout            |
+| `references/ui-kit.md`     | phase 2: the exact inventory of variables, styles, icons, atoms                  |
+| `references/components.md` | phases 3 to 5: mandatory families, states, naming, reuse, pushing retouches back |
+| `references/audits.md`     | before every gate, after any variable deletion, to measure a contrast            |

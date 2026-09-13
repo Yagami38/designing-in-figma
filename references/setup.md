@@ -1,164 +1,166 @@
-# Setup — fichier, pages, moodboard, disposition
+# Setup — file, pages, moodboard, layout
 
-Tout ce qui se passe avant la porte 1, plus la disposition de la page `Design` qui sert à partir de la phase 4.
+Everything that happens before gate 1, plus the layout of the `Design` page used from phase 4 onwards.
+
+Names below are English defaults; translate them into the user's language, consistently across the whole file.
 
 ---
 
-## 1. Fichier existant ou nouveau — une question, pas une hypothèse
+## 1. Existing or new file — a question, not an assumption
 
-**Avant tout appel**, demander : un fichier Figma existe-t-il pour ce produit ?
+**Before any call**, ask: does a Figma file already exist for this product?
 
-**Oui.** L'utilisateur donne le lien. Inventaire (`audits.md` §0) sur chaque page : noms des pages, Sections, frames lâches, jeux de variantes, collections de variables. Si le fichier a plus de trois pages, il n'est pas sur le plan gratuit ou vient d'un gabarit : **demander** avant de fusionner ou renommer quoi que ce soit. Si des pages portent du contenu sous d'autres noms, demander aussi.
+**Yes.** The user provides the link. Inventory (`audits.md` §0) on every page: page names, Sections, loose frames, variant sets, variable collections. If the file has more than three pages, it is not on the free plan or comes from a template: **ask** before merging or renaming anything. If pages carry content under other names, ask too.
 
-**Non.** Demander où le créer, en recommandant un **dossier Figma** : l'utilisateur crée le dossier (« Nouveau projet » dans son équipe) et donne son lien, de la forme `https://www.figma.com/files/project/<projectId>`. L'API ne crée pas de dossier. Sans dossier, le fichier va à la racine (brouillons). Puis, avec le skill officiel `figma-create-new-file` chargé : `whoami` pour le `planKey`, et `create_new_file` avec `editorType: "design"`, `fileName: "<Produit> — Design"` (dans la langue de l'utilisateur) et `projectId` s'il y en a un.
+**No.** Ask where to create it, recommending a **Figma folder**: the user creates the folder ("New project" in their team) and provides its link, of the form `https://www.figma.com/files/project/<projectId>`. The API cannot create a folder. Without a folder, the file goes to the root (drafts). Then, with the official `figma-create-new-file` skill loaded: `whoami` for the `planKey`, and `create_new_file` with `editorType: "design"`, `fileName: "<Product> — Design"` (in the user's language) and `projectId` if there is one.
 
-Renommer les pages — lecture d'abord, renommage ensuite :
+Rename the pages — read first, rename second:
 
 ```js
 const pages = figma.root.children.map((p) => ({
   name: p.name,
   id: p.id,
-  enfants: p.children.length,
+  children: p.children.length,
 }));
-return pages; // lire, et demander si une page a des enfants sous un autre nom
+return pages; // read, and ask if a page has children under another name
 ```
 
 ```js
-const noms = ["Design", "Composant", "Moodboard"];
+const names = ["Design", "Components", "Moodboard"];
 const pages = figma.root.children;
-if (pages.length > 3) return { erreur: "plus de trois pages", pages: pages.map((p) => p.name) };
+if (pages.length > 3) return { error: "more than three pages", pages: pages.map((p) => p.name) };
 const ids = [];
 for (let i = 0; i < 3; i++) {
   const p = pages[i] || figma.createPage();
-  p.name = noms[i];
+  p.name = names[i];
   ids.push(p.id);
 }
 return { mutatedNodeIds: ids };
 ```
 
-Un fichier neuf n'a qu'une page : les deux autres sont créées. Un fichier existant garde ses trois pages, renommées.
+A new file has a single page: the other two are created. An existing file keeps its three pages, renamed.
 
 ---
 
-## 2. `Moodboard 1` — quatre sous-sections vides
+## 2. `Moodboard 1` — four empty sub-sections
 
-Sur la page `Moodboard`, une Section `Moodboard 1` qui contient quatre Sections vides, côte à côte : `Design`, `Couleur`, `Typo`, `À éviter`. Une deuxième direction, plus tard, serait `Moodboard 2`, jamais un mélange dans la première.
+On the `Moodboard` page, a `Moodboard 1` Section containing four empty Sections side by side: `Design`, `Color`, `Typography`, `Avoid`. A second direction, later, would be `Moodboard 2`, never a mix inside the first.
 
 ```js
 const page = figma.root.children.find((p) => p.name === "Moodboard");
 await figma.setCurrentPageAsync(page);
 const PAD = 80,
-  ECART = 135,
+  GAP = 135,
   H = 1600;
 const M = figma.createSection();
 M.name = "Moodboard 1";
 page.appendChild(M);
-const sous = [
+const subs = [
   ["Design", 2400],
-  ["Couleur", 1200],
-  ["Typo", 1200],
-  ["À éviter", 1200],
+  ["Color", 1200],
+  ["Typography", 1200],
+  ["Avoid", 1200],
 ];
 let x = PAD;
-for (const [nom, w] of sous) {
+for (const [name, w] of subs) {
   const s = figma.createSection();
-  s.name = nom;
+  s.name = name;
   M.appendChild(s);
   s.x = x;
   s.y = PAD;
   s.resizeWithoutConstraints(w, H);
-  x += w + ECART;
+  x += w + GAP;
 }
-M.resizeWithoutConstraints(x - ECART + PAD, H + PAD * 2);
+M.resizeWithoutConstraints(x - GAP + PAD, H + PAD * 2);
 return { createdNodeIds: [M.id, ...M.children.map((c) => c.id)] };
 ```
 
-Puis **s'arrêter** : le message dit ce que chaque sous-section attend — `Design` : captures de sites ou d'apps dont la mise en page plaît ; `Couleur` : images, palettes, photos dont les teintes plaisent ; `Typo` : exemples de titres et de textes ; `À éviter` : tout ce qui déplaît — et le tour se termine. L'utilisateur remplit dans Figma et prévient quand il a fini.
+Then **stop**: the message says what each sub-section expects — `Design`: screenshots of websites or apps whose layout the user likes; `Color`: images, palettes, photos whose hues they like; `Typography`: examples of headings and body text; `Avoid`: anything they dislike — and the turn ends. The user fills it in Figma and says when they are done.
 
-### La `Synthèse`
+### The `Summary`
 
-Après l'analyse et les questions de la phase 1, une cinquième sous-section `Synthèse` reçoit un cadre texte en auto-layout vertical avec les décisions validées, dans cet ordre :
+After the analysis and the questions of phase 1, a fifth sub-section `Summary` receives a vertical auto-layout text frame with the validated decisions, in this order:
 
 ```
-Couleurs   primary #…  (vient de : …) · secondary-1 #… · neutres : chauds | froids · succès / erreur : par défaut | #…
-Typo       titres : <famille> <graisse> · texte : <famille> <graisse> · source : Google Fonts | <stack>
-Mise en page   grille … · densité … · rayons : surfaces … / contrôles … · images : …
-Effets     ombre : non | oui, sur … · dégradé : … · flou : … · bordures : …
-À éviter   …
-Cadrage    formats : mobile first puis desktop | … · icônes : <librairie> <variante> · langue des noms : … · langue du contenu : …
+Colors     primary #…  (from: …) · secondary-1 #… · neutrals: warm | cool · success / error: default | #…
+Type       headings: <family> <weight> · body: <family> <weight> · source: Google Fonts | <stack>
+Layout     grid … · density … · radii: surfaces … / controls … · images: …
+Effects    shadow: none | yes, on … · gradient: … · blur: … · borders: …
+Avoid      …
+Scoping    formats: mobile first then desktop | … · icons: <library> <variant> · language of names: … · language of content: …
 ```
 
-Chaque ligne correspond à une question posée et à une réponse reçue. Une ligne sans réponse n'existe pas : on n'écrit pas « par défaut » à la place de l'utilisateur, sauf pour succès et erreur, qui ont un défaut documenté dans `ui-kit.md`.
+Every line corresponds to a question asked and an answer received. A line without an answer does not exist: never write "default" in the user's place, except for success and error, which have a documented default in `ui-kit.md`.
 
 ---
 
-## 3. Disposition de la page `Design`
+## 3. Layout of the `Design` page
 
-Une page du produit = une Section. Dans chaque Section, les frames de la page dans l'ordre des formats retenus — **mobile à gauche quand on est mobile first**, desktop à droite. Les Sections sont alignées sur `y = 0`, côte à côte dans l'ordre du parcours de l'utilisateur. Une Section `Archive` ferme la rangée, tout à droite : ce qui est remplacé y va, renommé `<nom> (remplacée le AAAA-MM-JJ)`.
+One product page = one Section. Inside each Section, the page frames in the order of the chosen formats — **mobile on the left when mobile first**, desktop on the right. Sections are aligned on `y = 0`, side by side in the order of the user's journey. An `Archive` Section closes the row, at the far right: whatever gets replaced goes there, renamed `<name> (replaced on YYYY-MM-DD)`.
 
-| Constante        | Valeur | Rôle                                            |
-| ---------------- | -----: | ----------------------------------------------- |
-| `PAD`            |     80 | marge entre le bord d'une Section et ses frames |
-| `ECART_FRAMES`   |    240 | entre deux frames d'une même Section            |
-| `ECART_SECTIONS` |    135 | entre deux Sections voisines                    |
-| Mobile           |    390 | largeur du frame                                |
-| Desktop          |   1440 | largeur du frame                                |
+| Constant      | Value | Role                                           |
+| ------------- | ----: | ---------------------------------------------- |
+| `PAD`         |    80 | margin between a Section's edge and its frames |
+| `FRAME_GAP`   |   240 | between two frames of the same Section         |
+| `SECTION_GAP` |   135 | between two neighboring Sections               |
+| Mobile        |   390 | frame width                                    |
+| Desktop       |  1440 | frame width                                    |
 
-Nommage des frames : `<Page> — Mobile`, `<Page> — Desktop`.
+Frame naming: `<Page> — Mobile`, `<Page> — Desktop`.
 
-Ranger le canevas — idempotent, à repasser après toute création ou modification de page :
+Tidy the canvas — idempotent, to re-run after any page creation or change:
 
 ```js
 const page = figma.root.children.find((p) => p.name === "Design");
 await figma.setCurrentPageAsync(page);
 const PAD = 80,
-  ECART_FRAMES = 240,
-  ECART_SECTIONS = 135;
-const ordre = ["Home", "Projects", "Project", "About", "Contact", "Archive"]; // parcours, Archive en dernier
+  FRAME_GAP = 240,
+  SECTION_GAP = 135;
+const order = ["Home", "Projects", "Project", "About", "Contact", "Archive"]; // the journey, Archive last
 const sections = page.children
   .filter((c) => c.type === "SECTION")
   .sort((a, b) => {
-    const ia = ordre.indexOf(a.name),
-      ib = ordre.indexOf(b.name);
+    const ia = order.indexOf(a.name),
+      ib = order.indexOf(b.name);
     return (ia < 0 ? 98 : ia) - (ib < 0 ? 98 : ib);
   });
-let curseurX = 0;
-const ranges = [];
+let cursorX = 0;
+const arranged = [];
 for (const S of sections) {
-  const enfants = [...S.children].sort((a, b) => a.width - b.width); // mobile puis desktop
+  const kids = [...S.children].sort((a, b) => a.width - b.width); // mobile then desktop
   let x = PAD,
-    hMax = 0;
-  for (const k of enfants) {
+    maxH = 0;
+  for (const k of kids) {
     k.x = x;
     k.y = PAD;
-    x += k.width + ECART_FRAMES;
-    hMax = Math.max(hMax, k.height);
+    x += k.width + FRAME_GAP;
+    maxH = Math.max(maxH, k.height);
   }
-  S.x = curseurX;
+  S.x = cursorX;
   S.y = 0;
-  S.resizeWithoutConstraints(Math.max(x - ECART_FRAMES + PAD, PAD * 2), hMax + PAD * 2);
-  curseurX += S.width + ECART_SECTIONS;
-  ranges.push(S.id);
+  S.resizeWithoutConstraints(Math.max(x - FRAME_GAP + PAD, PAD * 2), maxH + PAD * 2);
+  cursorX += S.width + SECTION_GAP;
+  arranged.push(S.id);
 }
-return { mutatedNodeIds: ranges };
+return { mutatedNodeIds: arranged };
 ```
 
-Puis, dans un appel séparé, `audits.md` §7. Une Section ne suit pas ses frames quand ils grandissent, et rien ne le signale.
+Then, in a separate call, `audits.md` §7. A Section does not follow its frames when they grow, and nothing flags it.
 
 ---
 
-## 4. Inspirations — Dribbble, et rien d'autre
+## 4. Inspiration — Dribbble, and nothing else
 
-Seulement si l'utilisateur **demande** des inspirations. Une seule source : Dribbble. Ni Behance, ni Pinterest, ni Awwwards, ni une galerie de mémoire.
+Only if the user **asks** for inspiration. A single source: Dribbble. Not Behance, not Pinterest, not Awwwards, not a gallery from memory.
 
-**Ce que Dribbble laisse faire.** Ses pages — recherche comme fiches — refusent la lecture automatisée : elles reviennent vides. Ce qui fonctionne est la **recherche web restreinte au domaine** : `WebSearch` avec `allowed_domains: ["dribbble.com"]`, qui renvoie pour chaque shot son titre, son auteur et son lien. On ne voit pas l'image ; on ne prétend jamais l'avoir vue.
+**What Dribbble allows.** Its pages — search and shots alike — refuse automated reading: they come back empty. What works is the **web search restricted to the domain**: `WebSearch` with `allowed_domains: ["dribbble.com"]`, which returns each shot's title, author and link. The image is never seen; never claim to have seen it.
 
-Méthode :
+Method:
 
-1. Trois à cinq requêtes en anglais, `<type de produit> <style ou secteur>` : `architecture studio landing page`, `minimal portfolio website`, `fintech mobile app onboarding`. Pour en trouver d'autres, l'utilisateur peut aussi partir de `https://dribbble.com/search/<mots-clés>`.
-2. Retenir huit à douze shots, d'auteurs différents, en s'appuyant sur les titres et les descriptions renvoyées.
-3. Dans la sous-section `Design` de `Moodboard 1`, une **carte par shot** : titre, auteur, lien cliquable, une ligne « À regarder : … » tirée du titre ou du résumé — jamais d'une image qu'on n'a pas vue — et un rectangle `Image` vide de 480 × 360 où l'utilisateur colle le visuel.
-4. Le message reprend la liste des liens et demande à l'utilisateur de coller les visuels qu'il retient et de supprimer les cartes qu'il écarte. Ce tri fait partie du moodboard, donc de la porte 1.
+1. Three to five queries in English, `<product type> <style or industry>`: `architecture studio landing page`, `minimal portfolio website`, `fintech mobile app onboarding`. The user can also start from `https://dribbble.com/search/<keywords>` to find more.
+2. Keep eight to twelve shots, by different authors, based on the titles and descriptions returned.
+3. In the `Design` sub-section of `Moodboard 1`, **one card per shot**: title, author, clickable link, a "Look at: …" line drawn from the title or summary — never from an image that was not seen — and an empty 480 × 360 `Image` rectangle where the user pastes the visual.
+4. The message lists the links and asks the user to paste the visuals they keep and delete the cards they discard. That sorting is part of the moodboard, hence of gate 1.
 
 ```js
 const page = figma.root.children.find((p) => p.name === "Moodboard");
@@ -166,41 +168,41 @@ await figma.setCurrentPageAsync(page);
 const design = page.findOne((n) => n.type === "SECTION" && n.name === "Design");
 await figma.loadFontAsync({ family: "Inter", style: "Regular" });
 await figma.loadFontAsync({ family: "Inter", style: "Bold" });
-const shots = [{ titre: "…", auteur: "…", url: "https://dribbble.com/shots/…", regarder: "…" }];
+const shots = [{ title: "…", author: "…", url: "https://dribbble.com/shots/…", lookAt: "…" }];
 const ids = [];
 let x = 80,
   y = 80;
 for (const s of shots) {
-  const carte = figma.createAutoLayout("VERTICAL", {
-    name: `Inspiration · ${s.titre}`,
+  const card = figma.createAutoLayout("VERTICAL", {
+    name: `Inspiration · ${s.title}`,
     itemSpacing: 12,
   });
-  carte.paddingTop = carte.paddingBottom = carte.paddingLeft = carte.paddingRight = 16;
-  carte.fills = [{ type: "SOLID", color: { r: 1, g: 1, b: 1 } }];
-  design.appendChild(carte);
-  carte.x = x;
-  carte.y = y;
+  card.paddingTop = card.paddingBottom = card.paddingLeft = card.paddingRight = 16;
+  card.fills = [{ type: "SOLID", color: { r: 1, g: 1, b: 1 } }];
+  design.appendChild(card);
+  card.x = x;
+  card.y = y;
   const img = figma.createRectangle();
   img.name = "Image";
   img.resize(480, 360);
   img.fills = [{ type: "SOLID", color: { r: 0.93, g: 0.93, b: 0.93 } }];
-  carte.appendChild(img);
-  const titre = figma.createText();
-  titre.fontName = { family: "Inter", style: "Bold" };
-  titre.characters = s.titre;
-  const auteur = figma.createText();
-  auteur.characters = s.auteur;
-  const lien = figma.createText();
-  lien.characters = s.url;
-  lien.hyperlink = { type: "URL", value: s.url };
+  card.appendChild(img);
+  const title = figma.createText();
+  title.fontName = { family: "Inter", style: "Bold" };
+  title.characters = s.title;
+  const author = figma.createText();
+  author.characters = s.author;
+  const link = figma.createText();
+  link.characters = s.url;
+  link.hyperlink = { type: "URL", value: s.url };
   const note = figma.createText();
-  note.characters = `À regarder : ${s.regarder}`;
-  for (const t of [titre, auteur, lien, note]) {
-    carte.appendChild(t);
+  note.characters = `Look at: ${s.lookAt}`;
+  for (const t of [title, author, link, note]) {
+    card.appendChild(t);
     t.layoutSizingHorizontal = "FILL";
     t.textAutoResize = "HEIGHT";
   }
-  ids.push(carte.id);
+  ids.push(card.id);
   x += 480 + 32 + 32;
   if (x > 2400 - 560) {
     x = 80;
@@ -210,15 +212,15 @@ for (const s of shots) {
 return { createdNodeIds: ids };
 ```
 
-Les cartes sont un échafaudage du moodboard, pas un composant : elles vivent sur `Moodboard`, jamais sur `Composant`, et ne suivent aucune variable.
+The cards are moodboard scaffolding, not a component: they live on `Moodboard`, never on `Components`, and follow no variable.
 
 ---
 
-## 5. Ce que l'API ne fait pas
+## 5. What the API cannot do
 
-À lister en cases à cocher dans le message, jamais à contourner :
+To list as checkboxes in the message, never to work around:
 
-- [ ] créer un dossier (projet) Figma — l'utilisateur le crée et donne le lien
-- [ ] changer de plan, ajouter un mode, publier une bibliothèque
-- [ ] lire une page Dribbble — l'utilisateur colle les visuels
-- [ ] valider : chaque porte attend une réponse écrite de l'utilisateur
+- [ ] create a Figma folder (project) — the user creates it and provides the link
+- [ ] change plan, add a mode, publish a library
+- [ ] read a Dribbble page — the user pastes the visuals
+- [ ] validate: every gate waits for a written answer from the user

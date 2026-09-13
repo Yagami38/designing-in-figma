@@ -1,38 +1,38 @@
-# Audits — les contrôles à passer avant chaque porte
+# Audits — the checks to run before every gate
 
-Chaque contrôle est un script `use_figma` **en lecture seule** qui renvoie une liste. **La liste doit être vide.** Ce qu'il renvoie se corrige, puis le contrôle se relance.
+Every check is a **read-only** `use_figma` script that returns a list. **The list must be empty.** Whatever it returns gets fixed, then the check runs again.
 
-Deux règles d'exécution :
+Two execution rules:
 
-- **Un appel séparé de la correction.** Un contrôle lancé dans le même appel que la modification confirme l'état en mémoire du plugin, pas l'état enregistré du fichier.
-- **Une page par appel.** Chaque script commence par `await figma.setCurrentPageAsync(page)`, une seule fois. Pour plusieurs pages, plusieurs appels dans un même message.
+- **A call separate from the fix.** A check run in the same call as the change confirms the plugin's in-memory state, not the saved state of the file.
+- **One page per call.** Every script starts with `await figma.setCurrentPageAsync(page)`, once. For several pages, several calls in the same message.
 
-Remplacer `<id>` par l'identifiant relevé dans l'inventaire (§0). Les scripts sont en JavaScript de l'API Plugin, tels qu'on les passe à `use_figma`.
+Replace `<id>` with the identifier found in the inventory (§0). Scripts are Plugin API JavaScript, as passed to `use_figma`. Page names are English defaults: adjust them to the user's language.
 
 ---
 
-## 0. Inventaire d'une page
+## 0. Inventory of a page
 
-À passer avant de construire quoi que ce soit : ce qui existe déjà, sous quel nom, et ce qui traîne hors de toute Section.
+To run before building anything: what already exists, under which name, and what is lying outside any Section.
 
 ```js
 const page = figma.root.children.find((p) => p.name === "Design");
 await figma.setCurrentPageAsync(page);
-const lister = (s) => ({
+const describe = (s) => ({
   name: s.name,
   id: s.id,
-  enfants: s.children.map((k) =>
-    k.type === "SECTION" ? lister(k) : `${k.type} ${k.name} (${k.id})`,
+  children: s.children.map((k) =>
+    k.type === "SECTION" ? describe(k) : `${k.type} ${k.name} (${k.id})`,
   ),
 });
-const sections = page.children.filter((c) => c.type === "SECTION").map(lister);
-const framesLaches = page.children
+const sections = page.children.filter((c) => c.type === "SECTION").map(describe);
+const looseFrames = page.children
   .filter((c) => c.type !== "SECTION")
   .map((c) => ({ type: c.type, name: c.name, id: c.id }));
-return { sections, framesLaches }; // framesLaches doit être vide
+return { sections, looseFrames }; // looseFrames must be empty
 ```
 
-Sur `Composant`, même script en remplaçant `"Design"` ; y ajouter la liste des jeux de variantes :
+On `Components`, same script with `"Components"` instead; add the list of variant sets:
 
 ```js
 return page
@@ -41,127 +41,131 @@ return page
   .map((n) => ({
     name: n.name,
     id: n.id,
-    variantes: n.type === "COMPONENT_SET" ? n.children.length : 1,
+    variants: n.type === "COMPONENT_SET" ? n.children.length : 1,
   }));
 ```
 
 ---
 
-## 1. Valeurs hors variable, textes sans style
+## 1. Values outside variables, texts without a style
 
-Toute peinture unie, tout espacement, tout rayon, toute taille de texte est lié à une variable ; tout texte porte un style. Ce contrôle se repasse aussi **après toute suppression de variable** : Figma fige alors la valeur résolue et retire la liaison, sans alerte.
+Every solid paint, every spacing, every radius, every text size is bound to a variable; every text carries a style. This check also runs **after any variable deletion**: Figma then freezes the resolved value and removes the binding, with no warning.
 
 ```js
-const R = await figma.getNodeByIdAsync("<id de la Section ou du frame>");
-const fautifs = [];
-const libre = (paints) =>
+const R = await figma.getNodeByIdAsync("<id of the Section or frame>");
+const offenders = [];
+const unbound = (paints) =>
   Array.isArray(paints) &&
   paints.some(
     (p) =>
       p.type === "SOLID" && p.visible !== false && !(p.boundVariables && p.boundVariables.color),
   );
-const nonLie = (n, prop) =>
+const notBound = (n, prop) =>
   typeof n[prop] === "number" && n[prop] !== 0 && !(n.boundVariables && n.boundVariables[prop]);
-const v = (n) => {
+const visit = (n) => {
   if (n.visible === false) return;
-  if ("fills" in n && libre(n.fills)) fautifs.push({ id: n.id, name: n.name, quoi: "fill" });
-  if ("strokes" in n && libre(n.strokes)) fautifs.push({ id: n.id, name: n.name, quoi: "stroke" });
+  if ("fills" in n && unbound(n.fills)) offenders.push({ id: n.id, name: n.name, what: "fill" });
+  if ("strokes" in n && unbound(n.strokes))
+    offenders.push({ id: n.id, name: n.name, what: "stroke" });
   if (n.type === "TEXT" && n.getStyledTextSegments(["textStyleId"]).some((s) => !s.textStyleId)) {
-    fautifs.push({ id: n.id, name: n.name, quoi: "texte sans style" });
+    offenders.push({ id: n.id, name: n.name, what: "text without style" });
   }
   if ("layoutMode" in n && n.layoutMode !== "NONE") {
     for (const p of ["itemSpacing", "paddingTop", "paddingRight", "paddingBottom", "paddingLeft"]) {
-      if (nonLie(n, p)) fautifs.push({ id: n.id, name: n.name, quoi: p });
+      if (notBound(n, p)) offenders.push({ id: n.id, name: n.name, what: p });
     }
   }
   if ("cornerRadius" in n) {
     for (const p of ["topLeftRadius", "topRightRadius", "bottomLeftRadius", "bottomRightRadius"]) {
-      if (nonLie(n, p)) fautifs.push({ id: n.id, name: n.name, quoi: p });
+      if (notBound(n, p)) offenders.push({ id: n.id, name: n.name, what: p });
     }
   }
-  if ("children" in n) n.children.forEach(v);
+  if ("children" in n) n.children.forEach(visit);
 };
-v(R);
-return fautifs; // doit être vide
+visit(R);
+return offenders; // must be empty
 ```
 
-Exceptions admises, à lister par nom dans le script : un logo ou un artwork de marque tierce posé en image, et rien d'autre.
+Allowed exceptions, to list by name in the script: a logo or a third-party brand artwork placed as an image, and nothing else.
 
 ---
 
-## 2. Débordement horizontal, par bornes absolues
+## 2. Horizontal overflow, by absolute bounds
 
-Le seul contrôle qui fasse foi. Comparer chaque nœud à son parent laisse passer les enfants d'une rangée trop étroite et les nœuds en position absolue.
+The only check that counts. Comparing every node to its parent lets through the children of a row that is too narrow and the absolutely positioned nodes.
 
 ```js
-const F = await figma.getNodeByIdAsync("<id du frame de page>");
+const F = await figma.getNodeByIdAsync("<id of the page frame>");
 const B = F.absoluteBoundingBox;
-const dansUnDefilement = (n) => {
+const insideScroller = (n) => {
   for (let p = n.parent; p && p !== F.parent; p = p.parent) {
     if (p.overflowDirection === "HORIZONTAL" || p.overflowDirection === "BOTH") return true;
   }
   return false;
 };
-const hors = [];
-const v = (n) => {
+const outside = [];
+const visit = (n) => {
   const bb = n.absoluteBoundingBox;
   if (
     bb &&
     n !== F &&
     n.visible !== false &&
-    !dansUnDefilement(n) &&
+    !insideScroller(n) &&
     (bb.x < B.x - 0.5 || bb.x + bb.width > B.x + B.width + 0.5)
   ) {
-    hors.push({ name: n.name, id: n.id, x: Math.round(bb.x - B.x), w: Math.round(bb.width) });
+    outside.push({ name: n.name, id: n.id, x: Math.round(bb.x - B.x), w: Math.round(bb.width) });
   }
-  if ("children" in n) n.children.forEach(v);
+  if ("children" in n) n.children.forEach(visit);
 };
-v(F);
-return hors; // doit être vide
+visit(F);
+return outside; // must be empty
 ```
 
-Un carrousel est un débordement voulu : il se déclare sur son conteneur (`overflowDirection = "HORIZONTAL"`, `clipsContent = false`, nom explicite) et le script l'exclut.
+A carousel is a wanted overflow: it is declared on its container (`overflowDirection = "HORIZONTAL"`, `clipsContent = false`, explicit name) and the script excludes it.
 
 ---
 
-## 3. Jeux de variantes coupés ou étirés
+## 3. Variant sets clipped or stretched
 
-Un jeu de variantes doit être en auto-layout, hug sur les deux axes, et aucune variante ne doit sortir de ses bornes ni avoir été étirée à la largeur de la plus large.
+A variant set must be in auto-layout, hugging both axes, and no variant may leave its bounds or have been stretched to the width of the widest one.
 
 ```js
-const page = figma.root.children.find((p) => p.name === "Composant");
+const page = figma.root.children.find((p) => p.name === "Components");
 await figma.setCurrentPageAsync(page);
-const defauts = [];
+const issues = [];
 for (const S of page.findAllWithCriteria({ types: ["COMPONENT_SET"] })) {
-  if (S.layoutMode === "NONE") defauts.push({ set: S.name, quoi: "pas d'auto-layout" });
+  if (S.layoutMode === "NONE") issues.push({ set: S.name, what: "no auto-layout" });
   if (S.primaryAxisSizingMode !== "AUTO" || S.counterAxisSizingMode !== "AUTO")
-    defauts.push({ set: S.name, quoi: "pas en hug" });
-  const largeurs = new Set(S.children.map((v) => Math.round(v.width)));
+    issues.push({ set: S.name, what: "not hugging" });
   if (S.layoutMode !== "NONE" && S.counterAxisAlignItems === "STRETCH")
-    defauts.push({ set: S.name, quoi: "variantes étirées (STRETCH)" });
+    issues.push({ set: S.name, what: "variants stretched (STRETCH)" });
   for (const v of S.children) {
     if (v.x < 0 || v.y < 0 || v.x + v.width > S.width + 0.5 || v.y + v.height > S.height + 0.5) {
-      defauts.push({ set: S.name, variante: v.name, quoi: "hors du jeu" });
+      issues.push({ set: S.name, variant: v.name, what: "outside the set" });
     }
     if (v.layoutSizingHorizontal === "FILL")
-      defauts.push({ set: S.name, variante: v.name, quoi: "largeur en FILL" });
+      issues.push({ set: S.name, variant: v.name, what: "width in FILL" });
   }
 }
-return defauts; // doit être vide
+return issues; // must be empty
 ```
 
-Remède, après création d'un jeu :
+Remedy, after creating a set:
 
 ```js
-jeu.layoutMode = "HORIZONTAL";
-jeu.layoutWrap = "WRAP";
-jeu.primaryAxisSizingMode = "AUTO";
-jeu.counterAxisSizingMode = "AUTO";
-jeu.counterAxisAlignItems = "MIN";
-jeu.itemSpacing = 16;
-jeu.counterAxisSpacing = 16; // puis lier à space/16
-jeu.paddingTop = jeu.paddingRight = jeu.paddingBottom = jeu.paddingLeft = 24; // puis lier à space/24
-for (const v of jeu.children) {
+variantSet.layoutMode = "HORIZONTAL";
+variantSet.layoutWrap = "WRAP";
+variantSet.primaryAxisSizingMode = "AUTO";
+variantSet.counterAxisSizingMode = "AUTO";
+variantSet.counterAxisAlignItems = "MIN";
+variantSet.itemSpacing = 16;
+variantSet.counterAxisSpacing = 16; // then bind to space/16
+variantSet.paddingTop =
+  variantSet.paddingRight =
+  variantSet.paddingBottom =
+  variantSet.paddingLeft =
+    24; // then bind to space/24
+for (const v of variantSet.children) {
   v.layoutSizingHorizontal = "FIXED";
   v.layoutSizingVertical = "HUG";
 }
@@ -169,34 +173,34 @@ for (const v of jeu.children) {
 
 ---
 
-## 4. Nœuds écrasés
+## 4. Crushed nodes
 
-Symptôme d'un `FILL` hérité après un changement d'axe d'auto-layout : titres à 1 px, cartes réduites au tiers.
+Symptom of a `FILL` inherited after an auto-layout axis change: titles at 1 px, cards shrunk to a third.
 
 ```js
 const F = await figma.getNodeByIdAsync("<id>");
-const ecrases = [];
-const v = (n) => {
+const crushed = [];
+const visit = (n) => {
   if (n.visible === false) return;
   if (
     (n.type === "TEXT" && n.height < 8) ||
     (n.type === "FRAME" && n.layoutMode !== "NONE" && n.height < 4)
   ) {
-    ecrases.push({ id: n.id, name: n.name, h: n.height });
+    crushed.push({ id: n.id, name: n.name, h: n.height });
   }
-  if ("children" in n) n.children.forEach(v);
+  if ("children" in n) n.children.forEach(visit);
 };
-v(F);
-return ecrases; // doit être vide
+visit(F);
+return crushed; // must be empty
 ```
 
-Réparation : repasser en `HUG` tout enfant en `FILL` vertical (`textAutoResize = "HEIGHT"` sur les textes), des feuilles vers la racine.
+Fix: set back to `HUG` every child in vertical `FILL` (`textAutoResize = "HEIGHT"` on texts), from the leaves up to the root.
 
 ---
 
-## 5. Un seul style par texte
+## 5. A single style per text
 
-Un mot supprimé laisse une plage de style derrière lui. Lire `getStyledTextSegments`, pas le premier caractère.
+A deleted word leaves a style range behind. Read `getStyledTextSegments`, not the first character.
 
 ```js
 const F = await figma.getNodeByIdAsync("<id>");
@@ -205,139 +209,140 @@ for (const t of F.findAllWithCriteria({ types: ["TEXT"] })) {
   const styles = new Set(t.getStyledTextSegments(["textStyleId"]).map((s) => s.textStyleId));
   if (styles.size > 1) multi.push({ id: t.id, name: t.name, styles: [...styles] });
 }
-return multi; // doit être vide
+return multi; // must be empty
 ```
 
 ---
 
-## 6. Un seul H1 par page, aucun niveau sauté
+## 6. A single H1 per page, no skipped level
 
-Un style `Hn` sera un `<hn>`. L'audit d'accessibilité lit les titres dans l'ordre du document, page par page : le premier est l'unique `H1`, et aucun ne descend de plus d'un niveau. Ordre retenu : les enfants en position absolue d'abord (l'en-tête), puis l'ordre des calques, en profondeur. Les surcouches (modale, tiroir) ont leur propre hiérarchie : les exclure par nom.
+An `Hn` style will be an `<hn>`. The accessibility audit reads headings in document order, page by page: the first one is the single `H1`, and none drops by more than one level. Order used: absolutely positioned children first (the header), then layer order, depth first. Overlays (modal, drawer) have their own hierarchy: exclude them by name.
 
 ```js
-const F = await figma.getNodeByIdAsync("<id du frame de page>");
-const EXCLUS = /^(Overlay|Modal|Drawer|Surcouche|Modale|Tiroir)/;
-const niveaux = new Map();
+const F = await figma.getNodeByIdAsync("<id of the page frame>");
+const EXCLUDED = /^(Overlay|Modal|Drawer)/;
+const levels = new Map();
 for (const s of await figma.getLocalTextStylesAsync()) {
   const m = s.name.match(/H([1-6])$/);
-  if (m) niveaux.set(s.id, Number(m[1]));
+  if (m) levels.set(s.id, Number(m[1]));
 }
-const titres = [];
-const v = (n) => {
-  if (n.visible === false || EXCLUS.test(n.name)) return;
+const headings = [];
+const visit = (n) => {
+  if (n.visible === false || EXCLUDED.test(n.name)) return;
   if (n.type === "TEXT") {
-    const niv = niveaux.get(n.textStyleId);
-    if (niv) titres.push({ niveau: niv, texte: n.characters.slice(0, 40), id: n.id });
+    const level = levels.get(n.textStyleId);
+    if (level) headings.push({ level, text: n.characters.slice(0, 40), id: n.id });
     return;
   }
   if (!("children" in n)) return;
-  const absolus = n.children.filter((c) => c.layoutPositioning === "ABSOLUTE");
-  const flux = n.children.filter((c) => c.layoutPositioning !== "ABSOLUTE");
-  [...absolus, ...flux].forEach(v);
+  const absolute = n.children.filter((c) => c.layoutPositioning === "ABSOLUTE");
+  const flow = n.children.filter((c) => c.layoutPositioning !== "ABSOLUTE");
+  [...absolute, ...flow].forEach(visit);
 };
-v(F);
-const defauts = [];
-if (!titres.length || titres[0].niveau !== 1) defauts.push("le premier titre n'est pas un H1");
-if (titres.filter((t) => t.niveau === 1).length !== 1)
-  defauts.push("il n'y a pas exactement un H1");
-for (let i = 1; i < titres.length; i++) {
-  if (titres[i].niveau > titres[i - 1].niveau + 1) {
-    defauts.push(`saut ${titres[i - 1].niveau} → ${titres[i].niveau} avant « ${titres[i].texte} »`);
+visit(F);
+const issues = [];
+if (!headings.length || headings[0].level !== 1) issues.push("the first heading is not an H1");
+if (headings.filter((h) => h.level === 1).length !== 1) issues.push("there is not exactly one H1");
+for (let i = 1; i < headings.length; i++) {
+  if (headings[i].level > headings[i - 1].level + 1) {
+    issues.push(
+      `skip ${headings[i - 1].level} → ${headings[i].level} before "${headings[i].text}"`,
+    );
   }
 }
-return { defauts, titres }; // defauts doit être vide
+return { issues, headings }; // issues must be empty
 ```
 
 ---
 
-## 7. Sections : recouvrements et hauteurs
+## 7. Sections: overlaps and heights
 
-Une Section ne suit pas ses frames quand ils grandissent, et rien ne le signale. Après toute modification, sa hauteur vaut `PAD + hauteur du plus haut frame + PAD` (`setup.md` §3).
+A Section does not follow its frames when they grow, and nothing flags it. After any change, its height is `PAD + height of the tallest frame + PAD` (`setup.md` §3).
 
 ```js
-const parent = await figma.getNodeByIdAsync("<id de la page ou de la Section parente>");
+const parent = await figma.getNodeByIdAsync("<id of the page or of the parent Section>");
 const PAD = 80;
-const blocs = parent.children;
-const recouvrements = [];
-for (let i = 0; i < blocs.length; i++) {
-  for (let j = i + 1; j < blocs.length; j++) {
-    const a = blocs[i],
-      b = blocs[j];
+const blocks = parent.children;
+const overlaps = [];
+for (let i = 0; i < blocks.length; i++) {
+  for (let j = i + 1; j < blocks.length; j++) {
+    const a = blocks[i],
+      b = blocks[j];
     if (
       a.x < b.x + b.width &&
       b.x < a.x + a.width &&
       a.y < b.y + b.height &&
       b.y < a.y + a.height
     ) {
-      recouvrements.push([a.name, b.name]);
+      overlaps.push([a.name, b.name]);
     }
   }
 }
-const hauteurs = [];
-for (const S of blocs.filter((c) => c.type === "SECTION")) {
-  const bas = Math.max(...S.children.map((k) => k.y + k.height)); // coordonnées relatives à la Section
-  if (Math.abs(S.height - (bas + PAD)) > 0.5)
-    hauteurs.push({ section: S.name, actuelle: S.height, attendue: bas + PAD });
-  const sortants = S.children
+const heights = [];
+for (const S of blocks.filter((c) => c.type === "SECTION")) {
+  const bottom = Math.max(...S.children.map((k) => k.y + k.height)); // coordinates relative to the Section
+  if (Math.abs(S.height - (bottom + PAD)) > 0.5)
+    heights.push({ section: S.name, actual: S.height, expected: bottom + PAD });
+  const outsideChildren = S.children
     .filter((k) => k.x < 0 || k.y < 0 || k.x + k.width > S.width || k.y + k.height > S.height)
     .map((k) => k.name);
-  if (sortants.length) hauteurs.push({ section: S.name, sortants });
+  if (outsideChildren.length) heights.push({ section: S.name, outsideChildren });
 }
-return { recouvrements, hauteurs }; // les deux doivent être vides
+return { overlaps, heights }; // both must be empty
 ```
 
 ---
 
-## 8. Une passe a touché exactement ce qu'elle visait
+## 8. A pass touched exactly what it targeted
 
-Avant de transformer, **retourner ce que le sélecteur ramène** et le lire ; après, comparer le compte transformé au compte attendu. Un motif de nom trop large a déjà converti des cases à cocher en boutons.
+Before transforming, **return what the selector matches** and read it; afterwards, compare the transformed count to the expected count. A name pattern that was too broad has already turned checkboxes into buttons.
 
 ```js
-const cibles = racine.findAll((n) => /^Button/.test(n.name));
-return cibles.map((n) => ({ id: n.id, name: n.name, parent: n.parent.name })); // lire avant d'agir
+const targets = root.findAll((n) => /^Button/.test(n.name));
+return targets.map((n) => ({ id: n.id, name: n.name, parent: n.parent.name })); // read before acting
 ```
 
-Pour une passe sur plusieurs variantes d'un même composant : trouver chaque calque nécessaire **dans chaque variante**, et s'arrêter sans rien modifier s'il en manque un.
+For a pass over several variants of the same component: find every required layer **in every variant**, and stop without changing anything if one is missing.
 
 ---
 
-## 9. Contraste entre deux variables de couleur
+## 9. Contrast between two color variables
 
-Toute couleur nouvelle se mesure avant d'être adoptée. Le script suit les alias, compose l'alpha du premier plan sur le fond, et applique la formule WCAG. Seuil texte : 4,5:1 ; grand texte et contrôles : 3:1.
+Every new color is measured before being adopted. The script follows aliases, composites the foreground alpha over the background, and applies the WCAG formula. Thresholds: text 4.5:1; large text and controls 3:1.
 
 ```js
-const noms = ["color/neutral-1000", "color/neutral-0"]; // [premier plan, fond]
-const toutes = await figma.variables.getLocalVariablesAsync("COLOR");
-const [fg, bg] = noms.map((n) => toutes.find((v) => v.name === n));
-if (!fg || !bg) return { erreur: "variable introuvable", noms };
+const names = ["color/neutral-1000", "color/neutral-0"]; // [foreground, background]
+const all = await figma.variables.getLocalVariablesAsync("COLOR");
+const [fg, bg] = names.map((n) => all.find((v) => v.name === n));
+if (!fg || !bg) return { error: "variable not found", names };
 const lin = (c) => (c <= 0.03928 ? c / 12.92 : Math.pow((c + 0.055) / 1.055, 2.4));
 const lum = ({ r, g, b }) => 0.2126 * lin(r) + 0.7152 * lin(g) + 0.0722 * lin(b);
-const sur = (haut, bas) => {
-  const a = haut.a === undefined ? 1 : haut.a;
+const over = (top, base) => {
+  const a = top.a === undefined ? 1 : top.a;
   return {
-    r: haut.r * a + bas.r * (1 - a),
-    g: haut.g * a + bas.g * (1 - a),
-    b: haut.b * a + bas.b * (1 - a),
+    r: top.r * a + base.r * (1 - a),
+    g: top.g * a + base.g * (1 - a),
+    b: top.b * a + base.b * (1 - a),
   };
 };
-const resoudre = async (v) => {
-  let val = Object.values(v.valuesByMode)[0]; // un seul mode
+const resolve = async (v) => {
+  let val = Object.values(v.valuesByMode)[0]; // a single mode
   while (val && val.type === "VARIABLE_ALIAS") {
-    const cible = await figma.variables.getVariableByIdAsync(val.id);
-    val = Object.values(cible.valuesByMode)[0];
+    const target = await figma.variables.getVariableByIdAsync(val.id);
+    val = Object.values(target.valuesByMode)[0];
   }
   return val;
 };
-const f = await resoudre(fg),
-  b = await resoudre(bg);
-const L1 = lum(sur(f, b)),
+const f = await resolve(fg),
+  b = await resolve(bg);
+const L1 = lum(over(f, b)),
   L2 = lum(b);
 const ratio = (Math.max(L1, L2) + 0.05) / (Math.min(L1, L2) + 0.05);
-return { ratio: Math.round(ratio * 100) / 100, texte: ratio >= 4.5, grandTexte: ratio >= 3 };
+return { ratio: Math.round(ratio * 100) / 100, text: ratio >= 4.5, largeText: ratio >= 3 };
 ```
 
 ---
 
-## 10. Le regard
+## 10. The eye
 
-Aucun script ne remplace la capture. Après chaque changement visible : `get_screenshot` ou `await node.screenshot()`, et **regarder** — un texte en double, un badge rogné, une variante vide ne sont ni un débordement, ni une valeur en dur, ni un style manquant. Les audits attrapent ce qu'on a déjà rencontré ; la capture attrape le reste.
+No script replaces the screenshot. After every visible change: `get_screenshot` or `await node.screenshot()`, and **look** — a duplicated text, a cropped badge, an empty variant are neither an overflow, nor a bare value, nor a missing style. Audits catch what has already been met; the screenshot catches the rest.

@@ -1,40 +1,40 @@
-# Composants — familles, états, nommage, réutilisation
+# Components — families, states, naming, reuse
 
-Les composants vivent sur la page `Composant`, **une Section par famille**, après la Section `UI Kit`. Ils se construisent une fois l'UI kit terminé, et la porte 2 les valide **avec** l'UI kit. Les masters ne sont jamais sur `Design` : une page n'est qu'un assemblage d'instances.
+Components live on the `Components` page, **one Section per family**, after the `UI Kit` Section. They are built once the UI kit is done, and gate 2 validates them **together with** the UI kit. Masters are never on `Design`: a page is nothing but an assembly of instances.
 
-Les noms d'exemple sont en anglais ; en français, même schéma traduit, une seule langue dans le fichier.
-
----
-
-## 1. Ce qu'un produit possède toujours
-
-Pour un **site** :
-
-| Famille      | Composants obligatoires                                                                                                                            |
-| ------------ | -------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `Navigation` | en-tête (`State = Default \| Menu open` en mobile), fil d'Ariane si le site a des niveaux                                                          |
-| `Footer`     | pied de page complet : liens, mentions, newsletter si prévue                                                                                       |
-| `Form`       | formulaire de contact (`State = Default \| Error \| Success`), newsletter (idem)                                                                   |
-| `Card`       | une carte par type de contenu : projet, article, produit, membre…                                                                                  |
-| `Section`    | **toutes les sections du produit**, une par bloc de page : hero, liste de cartes, bandeau d'appel à l'action, témoignages, FAQ, contenu riche, 404 |
-
-Pour une **app** :
-
-| Famille      | Composants obligatoires                                                                  |
-| ------------ | ---------------------------------------------------------------------------------------- |
-| `Navigation` | barre du haut, barre d'onglets ou tiroir, retour                                         |
-| `List`       | ligne de liste (`State = Default \| Selected`), en-tête de groupe                        |
-| `Card`       | une par type de contenu                                                                  |
-| `Overlay`    | modale, feuille du bas, toast (`Tone = Neutral \| Success \| Error`)                     |
-| `Screen`     | **tous les écrans du produit** ; les états vide, chargement et erreur sont des variantes |
-
-Les atomes (`Button`, `Input`…) viennent de l'UI kit et ne se redessinent jamais dans un composant : on y pose des instances.
+Example names are English defaults; in another language, same scheme translated, one language across the file.
 
 ---
 
-## 2. Les états sont des variantes
+## 1. What a product always has
 
-Une maquette ne montre par défaut que le cas nominal. Les autres cas se dessinent comme **propriétés de variante** sur le composant concerné, jamais comme frames dupliqués :
+For a **website**:
+
+| Family       | Mandatory components                                                                                                             |
+| ------------ | -------------------------------------------------------------------------------------------------------------------------------- |
+| `Navigation` | header (`State = Default \| Menu open` on mobile), breadcrumb if the site has levels                                             |
+| `Footer`     | full footer: links, legal, newsletter if planned                                                                                 |
+| `Form`       | contact form (`State = Default \| Error \| Success`), newsletter (same)                                                          |
+| `Card`       | one card per content type: project, article, product, team member…                                                               |
+| `Section`    | **every section of the product**, one per page block: hero, card list, call-to-action band, testimonials, FAQ, rich content, 404 |
+
+For an **app**:
+
+| Family       | Mandatory components                                                          |
+| ------------ | ----------------------------------------------------------------------------- |
+| `Navigation` | top bar, tab bar or drawer, back                                              |
+| `List`       | list row (`State = Default \| Selected`), group header                        |
+| `Card`       | one per content type                                                          |
+| `Overlay`    | modal, bottom sheet, toast (`Tone = Neutral \| Success \| Error`)             |
+| `Screen`     | **every screen of the product**; empty, loading and error states are variants |
+
+The atoms (`Button`, `Input`…) come from the UI kit and are never redrawn inside a component: instances are placed.
+
+---
+
+## 2. States are variants
+
+A mockup shows the nominal case by default. The other cases are drawn as **variant properties** on the component concerned, never as duplicated frames:
 
 ```
 Section / Project grid    Breakpoint = Mobile | Desktop
@@ -45,62 +45,62 @@ Navigation / Header       Breakpoint = Mobile | Desktop
                           State      = Default | Menu open
 ```
 
-Obligatoires :
+Mandatory:
 
-- `Empty`, `Loading`, `Error` sur toute section ou écran qui affiche des données (liste, grille, résultats, tableau de bord).
-- `Error` et `Success` sur tout formulaire.
-- `Hover`, `Focus`, `Disabled` sur tout contrôle — ils viennent de l'UI kit.
+- `Empty`, `Loading`, `Error` on every section or screen that displays data (list, grid, results, dashboard).
+- `Error` and `Success` on every form.
+- `Hover`, `Focus`, `Disabled` on every control — they come from the UI kit.
 
-**Un état retire autant qu'il ajoute.** Une grille vide n'affiche pas ses filtres de tri ; un formulaire envoyé n'affiche plus son bouton. Un état qui empile un message sur l'état nominal laisse des commandes qui ne mènent nulle part.
+**A state removes as much as it adds.** An empty grid does not show its sort filters; a submitted form no longer shows its button. A state that stacks a message on top of the nominal state leaves controls that lead nowhere.
 
-`Breakpoint` n'existe que si deux formats ont été retenus au cadrage. Les deux variantes diffèrent par la **structure** (colonnes empilées, menu replié), pas seulement par la largeur : c'est ce qui justifie deux variantes plutôt qu'un composant redimensionnable qui masquerait des calques.
+`Breakpoint` exists only if two formats were chosen at scoping. The two variants differ in **structure** (stacked columns, collapsed menu), not only in width: that is what justifies two variants rather than one resizable component that would hide layers.
 
 ---
 
-## 3. Nommage
+## 3. Naming
 
 ```
-<Famille> / <Nom>            Section / Hero · Card / Project · Form / Contact
+<Family> / <Name>            Section / Hero · Card / Project · Form / Contact
 ```
 
-- Le nom dit le **rôle**, pas l'apparence ni la page : `Card / Project`, pas `Carte bleue` ni `Carte accueil`.
-- Les propriétés de variante ont des valeurs en mots entiers : `Default`, pas `def`.
-- Les calques internes sont nommés par rôle (`Title`, `Excerpt`, `Cover`, `Actions`) : c'est ce que les dérogations d'instance et les scripts retrouvent.
+- The name states the **role**, not the appearance nor the page: `Card / Project`, not `Blue card` nor `Home card`.
+- Variant property values are whole words: `Default`, not `def`.
+- Inner layers are named by role (`Title`, `Excerpt`, `Cover`, `Actions`): that is what instance overrides and scripts find.
 
 ---
 
-## 4. Construire un composant
+## 4. Building a component
 
-1. **Chercher avant de créer.** Lister les `COMPONENT_SET` existants ; si une variante ou une dérogation couvre le besoin, il n'y a pas de nouveau composant.
-2. Construire la variante principale (le premier format retenu) en instances d'atomes, tout en auto-layout, toutes les valeurs liées.
-3. Dériver l'autre `Breakpoint` par **clonage** de cette variante, jamais par reconstruction : cloner, restructurer à la largeur d'origine, réduire, puis repasser en `HUG` tout ce qu'un changement d'axe a laissé en `FILL` (un titre écrasé à 1 px en est le symptôme).
-4. Ajouter les états en clonant la variante `Default` et en retirant ou remplaçant ce qui n'a plus d'objet.
-5. Ranger le jeu : auto-layout, retour à la ligne, hug, padding `space/24`, écart `space/16`, variantes en largeur `FIXED` (`audits.md` §3).
-6. Capture, et audits §1 à §5 sur la Section de la famille, dans un appel séparé.
+1. **Search before creating.** List the existing `COMPONENT_SET`s; if a variant or an override covers the need, there is no new component.
+2. Build the main variant (the first chosen format) from atom instances, everything in auto-layout, every value bound.
+3. Derive the other `Breakpoint` by **cloning** that variant, never by rebuilding: clone, restructure at the original width, shrink, then set back to `HUG` everything an axis change left in `FILL` (a title crushed to 1 px is the symptom).
+4. Add the states by cloning the `Default` variant and removing or replacing what no longer applies.
+5. Tidy the set: auto-layout, wrap, hug, `space/24` padding, `space/16` gap, variants in `FIXED` width (`audits.md` §3).
+6. Screenshot, and audits §1 to §5 on the family's Section, in a separate call.
 
-**Corriger le master, jamais l'instance.** Une correction dans une instance crée une dérogation qui survit aux mises à jour et diverge des autres pages. Ce qui varie d'une page à l'autre (un titre, un nombre) est une dérogation voulue ; ce qui varie structurellement est un autre composant.
-
----
-
-## 5. Réutiliser pendant la déclinaison
-
-En phase 5, chaque page se compose **d'abord** avec ce qui existe, dans cet ordre :
-
-1. une instance telle quelle ;
-2. une instance avec dérogations de contenu (textes, images, icône) ;
-3. une nouvelle **variante** d'un composant existant (nouvel état, nouvelle disposition mineure) ;
-4. un nouveau composant — seulement si la structure diffère réellement, et il rejoint sa famille sur `Composant` avant d'être posé.
-
-Deux composants qui ne diffèrent que par leur contenu se fusionnent : permuter les instances vers la variante équivalente (`swapComponent`), reporter les dérogations, lire ce qui a réellement été dérogé dans `instance.overrides`, et ne supprimer l'ancien qu'à **zéro instance** restante.
+**Fix the master, never the instance.** A fix made in an instance creates an override that survives component updates and drifts from the other pages. What varies from one page to another (a title, a number) is a wanted override; what varies structurally is another component.
 
 ---
 
-## 6. Ce qui remonte dans les composants après la porte 3
+## 5. Reusing while deriving the pages
 
-Quand l'utilisateur a retouché la première maquette directement dans Figma, ses retouches sont dans des **instances** (dérogations) ou dans des frames détachés. Avant de décliner :
+In phase 5, every page is composed **first** with what exists, in this order:
 
-1. Lister, sur la page validée, les instances portant des `overrides` et les frames qui ne sont plus des instances.
-2. Pour chaque écart, décider avec l'utilisateur s'il est **local** (une dérogation de contenu) ou **systémique** (une correction du composant, une nouvelle valeur d'échelle). Rien n'est déduit en silence.
-3. Reporter le systémique dans le master, puis `resetOverrides()` sur les instances concernées ; réintégrer les frames détachés comme instances.
+1. an instance as is;
+2. an instance with content overrides (texts, images, icon);
+3. a new **variant** of an existing component (new state, minor layout change);
+4. a new component — only if the structure really differs, and it joins its family on `Components` before being placed.
 
-Sans cette passe, les autres pages n'auraient pas les retouches, et la première page divergerait de son propre système.
+Two components that differ only by their content get merged: swap the instances to the equivalent variant (`swapComponent`), carry the overrides across, read what was actually overridden in `instance.overrides`, and delete the old one only at **zero remaining instances**.
+
+---
+
+## 6. What goes back into the components after gate 3
+
+When the user has retouched the first mockup directly in Figma, their retouches sit in **instances** (overrides) or in detached frames. Before deriving the other pages:
+
+1. List, on the validated page, the instances carrying `overrides` and the frames that are no longer instances.
+2. For each difference, decide with the user whether it is **local** (a content override) or **systemic** (a fix to the component, a new scale value). Nothing is inferred silently.
+3. Push the systemic ones into the master, then `resetOverrides()` on the instances concerned; bring the detached frames back as instances.
+
+Without this pass, the other pages would not have the retouches, and the first page would drift from its own system.

@@ -1,66 +1,60 @@
 # designing-in-figma
 
-Un skill pour Claude Code qui encode une méthode de conception de sites et d'apps dans Figma, par le serveur MCP Figma : cadrage, moodboard analysé et validé choix par choix, UI kit minimaliste en variables, composants avec tous leurs états, première maquette validée avant de décliner les autres pages. Il est écrit pour le **plan gratuit** de Figma (trois pages par fichier, un mode par collection, pas de bibliothèque d'équipe).
+A skill for Claude Code that encodes a method for designing websites and apps in Figma through the Figma MCP server: scoping questions, a moodboard analyzed and validated choice by choice, a minimalist variable-based UI kit, components with all their states, and a first mockup validated before the other pages are derived. It is written for Figma's **free plan** (three pages per file, one mode per collection, no team library).
 
-Le skill est en français. Les identifiants Figma d'exemple sont en anglais ; il demande à l'utilisateur dans quelle langue nommer ses variables et composants.
+The skill asks the user which language to use for page, variable and component names, and applies it consistently across the file.
 
-## Prérequis
+## Requirements
 
-- [Claude Code](https://claude.com/claude-code) avec le connecteur Figma activé (serveur MCP Figma de claude.ai).
-- Un compte Figma, plan gratuit ou payant.
+- [Claude Code](https://claude.com/claude-code) with the Figma connector enabled (the claude.ai Figma MCP server).
+- A Figma account, free or paid plan.
 
 ## Installation
 
-Pour tous les projets :
+For every project on the machine:
 
 ```bash
 git clone https://github.com/Yagami38/designing-in-figma.git ~/.claude/skills/designing-in-figma
 ```
 
-Pour un seul projet, depuis sa racine :
+For a single project, from its root:
 
 ```bash
 git clone https://github.com/Yagami38/designing-in-figma.git .claude/skills/designing-in-figma
 ```
 
-Mise à jour : `git pull` dans le dossier. Claude Code charge le skill dès qu'une conversation touche à la conception dans Figma ; on peut aussi l'invoquer avec `/designing-in-figma`.
+Update with `git pull` inside the folder. Claude Code loads the skill as soon as a conversation is about designing in Figma; it can also be invoked with `/designing-in-figma`.
 
-## Ce que contient le dépôt
+## What the repository contains
 
-| Fichier                    | Contenu                                                                                                      |
-| -------------------------- | ------------------------------------------------------------------------------------------------------------ |
-| `SKILL.md`                 | la méthode : contraintes du plan gratuit, les trois portes de validation, le cadrage, les cinq phases, les règles non négociables, les rationalisations à reconnaître, la liste obligatoire avant chaque porte |
-| `references/setup.md`     | fichier existant ou nouveau (dossier Figma recommandé), les trois pages, la Section `Moodboard 1` et sa `Synthèse`, la disposition de `Design`, les inspirations Dribbble |
-| `references/ui-kit.md`    | l'inventaire exact des variables (couleurs minimalistes, échelle d'espacement 4 → 128, rayons, typographie), les sept styles de texte, l'import d'icônes, les atomes et leurs états |
-| `references/components.md` | les familles de composants obligatoires pour un site et pour une app, les états en variantes, le nommage, l'ordre de réutilisation, la remontée des retouches dans les masters |
-| `references/audits.md`    | dix scripts de contrôle en lecture seule, à passer avant chaque porte                                        |
+| File                       | Content                                                                                                                                                                                         |
+| -------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `SKILL.md`                 | the method: free-plan constraints, the three validation gates, scoping, the five phases, the non-negotiable rules, the rationalizations to recognize, the mandatory checklist before every gate |
+| `references/setup.md`      | existing or new file (Figma folder recommended), the three pages, the `Moodboard 1` Section and its `Summary`, the `Design` page layout, Dribbble inspiration                                   |
+| `references/ui-kit.md`     | the exact inventory of variables (minimal colors, 4 → 128 spacing scale, radii, typography), the seven text styles, icon import, the atoms and their states                                     |
+| `references/components.md` | the mandatory component families for a website and for an app, states as variants, naming, the reuse order, pushing the user's retouches back into the masters                                  |
+| `references/audits.md`     | ten read-only check scripts, to run before every gate                                                                                                                                           |
 
-## La méthode en bref
+## The method in brief
 
-1. **Cadrage** — avant tout appel : fichier existant ou dossier à créer, site ou app, formats (mobile first recommandé), librairie d'icônes (Material Design recommandée, jamais d'icône dessinée), langues, stack et assets.
-2. **Moodboard** — trois pages `Design`, `Composant`, `Moodboard` ; une Section `Moodboard 1` vide (Design, Couleur, Typo, À éviter) que l'utilisateur remplit ; Claude l'analyse et valide chaque choix par une question, effets compris ; les décisions sont écrites dans une `Synthèse`. **Porte 1.**
-3. **UI kit** — variables en une couche : une primary, jusqu'à trois secondaires, les neutres, succès et erreur ; espacements sur l'échelle `4, 8, 12, 16, 20, 24, 28, 32, 36, 40, 48, 56, 64, 72, 80, 96, 112, 128` ; styles de texte liés aux variables ; icônes importées ; atomes avec Hover, Focus, Disabled, Erreur, Succès.
-4. **Composants** — navigation, footer, formulaires, cartes, puis toutes les sections du produit, avec Vide, Chargement et Erreur en variantes. **Porte 2.**
-5. **Première maquette** — une seule page, assemblée d'instances ; l'utilisateur la retouche directement dans Figma et la valide ; ses retouches remontent dans les masters. **Porte 3.**
-6. **Déclinaison** — les autres pages avec le maximum de composants existants, puis le second format.
+1. **Scoping** — before any call: existing file or folder to create, website or app, formats (mobile first recommended), icon library (Material Design recommended, never a drawn icon), languages, stack and assets.
+2. **Moodboard** — three pages `Design`, `Components`, `Moodboard`; an empty `Moodboard 1` Section (Design, Color, Typography, Avoid) that the user fills in; Claude analyzes it and validates every choice with a question, effects included; the decisions are written into a `Summary`. **Gate 1.**
+3. **UI kit** — single-layer variables: one primary, up to three secondaries, the neutrals, success and error; spacing on the scale `4, 8, 12, 16, 20, 24, 28, 32, 36, 40, 48, 56, 64, 72, 80, 96, 112, 128`; text styles bound to variables; imported icons; atoms with Hover, Focus, Disabled, Error, Success.
+4. **Components** — navigation, footer, forms, cards, then every section of the product, with Empty, Loading and Error as variants. **Gate 2.**
+5. **First mockup** — a single page, assembled from instances; the user retouches it directly in Figma and validates it; the retouches are pushed back into the masters. **Gate 3.**
+6. **Deriving** — the other pages with as many existing components as possible, then the second format.
 
-Toutes les valeurs — couleur, espacement, padding, rayon, taille et interligne, famille et graisse — sont des variables. Rien n'est déduit en silence : une police, une couleur, un effet sont des questions posées à l'utilisateur.
+Every value — color, spacing, padding, radius, size and line height, family and weight — is a variable. Nothing is inferred silently: a typeface, a color, an effect are questions asked to the user.
 
-## Limites connues
+## Known limits
 
-- L'API Figma ne crée pas de dossier : l'utilisateur le crée et donne le lien.
-- Dribbble refuse la lecture automatisée de ses pages ; le skill s'appuie sur la recherche web restreinte au domaine et crée des cartes d'inspiration (titre, auteur, lien, emplacement d'image) que l'utilisateur complète.
+- The Figma API cannot create a folder: the user creates it and provides the link.
+- Dribbble refuses automated reading of its pages; the skill relies on domain-restricted web search and creates inspiration cards (title, author, link, image slot) that the user completes.
 
-## Contribuer
+## Contributing
 
-Un piège rencontré en situation réelle s'ajoute dans la référence concernée sous la forme : symptôme observé, cause, parade, date. Les issues et pull requests sont les bienvenues.
+A pitfall met in real use is added to the reference concerned as: observed symptom, cause, remedy, date. Issues and pull requests are welcome.
 
-## Licence
+## License
 
-MIT — voir `LICENSE`.
-
----
-
-## English summary
-
-A Claude Code skill that encodes a design method for websites and apps in Figma through the Figma MCP server: scoping questions, a moodboard analyzed and validated choice by choice, a minimalist variable-based UI kit, components with all their states, and a first mockup validated before the other pages are derived. Written for Figma's free plan (three pages per file, one mode per collection, no team library). The skill itself is in French; install it with `git clone https://github.com/Yagami38/designing-in-figma.git ~/.claude/skills/designing-in-figma`.
+MIT — see `LICENSE`.

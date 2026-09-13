@@ -1,42 +1,42 @@
-# UI kit — variables, styles, icônes, atomes
+# UI kit — variables, styles, icons, atoms
 
-L'UI kit vit sur la page `Composant`, dans une Section `UI Kit` composée de cinq sous-sections : `Couleurs`, `Typographie`, `Espacements et rayons`, `Icônes`, `Atomes`. Il se construit **après** la porte 1 (moodboard validé, synthèse écrite) et **avant** les composants. Aucune valeur n'est décidée ici : elles viennent toutes de la `Synthèse` du moodboard.
+The UI kit lives on the `Components` page, in a `UI Kit` Section made of five sub-sections: `Colors`, `Typography`, `Spacing and radii`, `Icons`, `Atoms`. It is built **after** gate 1 (moodboard validated, summary written) and **before** the components. No value is decided here: they all come from the moodboard's `Summary`.
 
-Les exemples sont nommés en anglais. Si l'utilisateur travaille en français, le schéma est le même, traduit (`couleur/primaire`, `Bouton`, `Champ`) — une seule langue dans tout le fichier.
+Names are English defaults. If the user works in another language, the scheme is the same, translated (`couleur/primaire`, `Bouton`, `Champ`) — one language across the whole file.
 
 ---
 
-## 1. Variables — une couche, par rôle et par échelle
+## 1. Variables — a single layer, by role and by scale
 
-Le plan gratuit n'offre **qu'un mode par collection** : pas de Light/Dark ni de Mobile/Desktop par modes. Chaque variable a une valeur, point. Les écarts entre formats se règlent variante par variante, en liant une autre valeur de la même échelle.
+The free plan offers **only one mode per collection**: no Light/Dark or Mobile/Desktop through modes. Every variable has one value, period. Differences between formats are handled variant by variant, by binding another value of the same scale.
 
-Quatre collections. Tout ce qui suit est **la liste complète** : on retire, on n'ajoute pas sans décision écrite dans la synthèse du moodboard.
+Four collections. What follows is **the complete list**: remove from it, never add without a written decision in the moodboard's summary.
 
-### `color` — minimaliste
+### `color` — minimal
 
-| Variable                                  | Rôle                                                      |
-| ----------------------------------------- | --------------------------------------------------------- |
-| `color/primary`                           | l'accent unique : boutons primaires, liens, focus         |
-| `color/primary-hover`                     | le même, assombri ou éclairci de 8 à 12 %                 |
-| `color/secondary-1` … `color/secondary-3` | **au plus trois**, seulement si le moodboard les impose   |
-| `color/neutral-0` … `color/neutral-1000`  | dégradé de blanc à noir : 0, 100, 200 … 900, 1000         |
-| `color/success`, `color/success-bg`       | confirmation ; le `-bg` est la même teinte à 12 % d'alpha |
-| `color/error`, `color/error-bg`           | erreur, rupture, suppression ; idem                       |
+| Variable                                  | Role                                                   |
+| ----------------------------------------- | ------------------------------------------------------ |
+| `color/primary`                           | the single accent: primary buttons, links, focus       |
+| `color/primary-hover`                     | the same, darkened or lightened by 8 to 12 %           |
+| `color/secondary-1` … `color/secondary-3` | **three at most**, only if the moodboard requires them |
+| `color/neutral-0` … `color/neutral-1000`  | gradient from white to black: 0, 100, 200 … 900, 1000  |
+| `color/success`, `color/success-bg`       | confirmation; the `-bg` is the same hue at 12 % alpha  |
+| `color/error`, `color/error-bg`           | error, out of stock, deletion; same                    |
 
-Règles :
+Rules:
 
-- **Le texte et les fonds viennent des neutres**, jamais des secondaires. Une secondaire est un accent de section ou d'illustration.
-- **L'alpha vit dans la variable** (`{ r, g, b, a }`), jamais dans `paint.opacity` ni `node.opacity` : une opacité posée sur la peinture après liaison est ignorée au rendu.
-- **Contraste mesuré avant d'adopter** : texte ≥ 4,5:1, grand texte et contrôles ≥ 3:1 (`audits.md` §9). Un candidat à 4,4:1 s'écarte.
-- Un dégradé, une ombre, un flou n'existent que si la synthèse du moodboard les a validés ; ils deviennent alors un **style d'effet** nommé, jamais une valeur posée à la main.
+- **Text and backgrounds come from the neutrals**, never from the secondaries. A secondary is an accent for a section or an illustration.
+- **Alpha lives in the variable** (`{ r, g, b, a }`), never in `paint.opacity` or `node.opacity`: an opacity set on the paint after binding is ignored at render time.
+- **Contrast measured before adopting**: text ≥ 4.5:1, large text and controls ≥ 3:1 (`audits.md` §9). A candidate at 4.4:1 is rejected.
+- A gradient, a shadow, a blur exist only if the moodboard's summary validated them; they then become a named **effect style**, never a value set by hand.
 
-### `space` — l'échelle, et rien d'autre
+### `space` — the scale, and nothing else
 
 ```
 4, 8, 12, 16, 20, 24, 28, 32, 36, 40, 48, 56, 64, 72, 80, 96, 112, 128
 ```
 
-Multiples de 4 jusqu'à 40, de 8 jusqu'à 80, de 16 au-delà. Un besoin de 44 ou 90 px n'a pas de solution dédiée : trancher entre deux voisins. Tout `itemSpacing`, tout `padding`, tout écart entre blocs est lié à l'une de ces variables.
+Multiples of 4 up to 40, of 8 up to 80, of 16 beyond. A need for 44 or 90 px has no dedicated answer: pick one of the two neighbors. Every `itemSpacing`, every `padding`, every gap between blocks is bound to one of these variables.
 
 ### `radius`
 
@@ -44,9 +44,9 @@ Multiples de 4 jusqu'à 40, de 8 jusqu'à 80, de 16 au-delà. Un besoin de 44 ou
 radius/0, radius/4, radius/8, radius/12, radius/16, radius/full (999)
 ```
 
-Deux rayons par produit suffisent presque toujours : un pour les surfaces (cartes, images, panneaux), un pour les contrôles (boutons, champs). `full` est réservé aux pastilles et aux interrupteurs.
+Two radii per product are almost always enough: one for surfaces (cards, images, panels), one for controls (buttons, fields). `full` is reserved for pills and toggles.
 
-### `type` — tailles, interlignes, familles
+### `type` — sizes, line heights, families
 
 ```
 type/size-12  type/size-16  type/size-20  type/size-24
@@ -55,81 +55,81 @@ type/size-32  type/size-40  type/size-48  type/size-64
 type/line-16  type/line-24  type/line-28  type/line-32
 type/line-40  type/line-48  type/line-56  type/line-72
 
-font/heading  font/body            (STRING : la famille, issue du moodboard)
-font/weight-heading  font/weight-body   (STRING : le style, ex. « Bold », « Regular »)
+font/heading  font/body            (STRING: the family, from the moodboard)
+font/weight-heading  font/weight-body   (STRING: the style, e.g. "Bold", "Regular")
 ```
 
-**Polices : Google Fonts par défaut**, vérifiées disponibles dans Figma (`listAvailableFontsAsync`) avant toute liaison. Exception : une stack qui recommande ses propres polices — Shopify et sa bibliothèque de polices, une charte d'entreprise — l'emporte.
+**Fonts: Google Fonts by default**, checked as available in Figma (`listAvailableFontsAsync`) before any binding. Exception: a stack that recommends its own fonts — Shopify and its font library, a corporate brand guide — wins.
 
 ---
 
-## 2. Styles de texte
+## 2. Text styles
 
-Sept rôles, liés aux variables (taille, interligne, famille, graisse), jamais des valeurs brutes. **Deux groupes quand deux formats sont retenus** — le plan gratuit n'a pas de modes, donc `Mobile/H1` et `Desktop/H1` sont deux styles portant le même rôle.
+Seven roles, bound to variables (size, line height, family, weight), never raw values. **Two groups when two formats were chosen** — the free plan has no modes, so `Mobile/H1` and `Desktop/H1` are two styles carrying the same role.
 
-| Rôle      | Mobile (taille / interligne)        | Desktop | Emploi                               |
-| --------- | ----------------------------------- | ------- | ------------------------------------ |
-| `H1`      | 40 / 48                             | 64 / 72 | titre de page — **un seul par page** |
-| `H2`      | 32 / 40                             | 48 / 56 | titre de section                     |
-| `H3`      | 24 / 32                             | 32 / 40 | titre de carte, de sous-bloc         |
-| `H4`      | 20 / 28                             | 24 / 32 | sous-titre, intitulé de formulaire   |
-| `Body`    | 16 / 24                             | 16 / 24 | texte courant                        |
-| `Small`   | 12 / 16                             | 12 / 16 | mentions, aide, métadonnées          |
-| `Caption` | 12 / 16, capitales, +4 % d'approche | idem    | étiquettes, surtitres                |
+| Role      | Mobile (size / line height)       | Desktop | Use                           |
+| --------- | --------------------------------- | ------- | ----------------------------- |
+| `H1`      | 40 / 48                           | 64 / 72 | page title — **one per page** |
+| `H2`      | 32 / 40                           | 48 / 56 | section title                 |
+| `H3`      | 24 / 32                           | 32 / 40 | card title, sub-block title   |
+| `H4`      | 20 / 28                           | 24 / 32 | subtitle, form heading        |
+| `Body`    | 16 / 24                           | 16 / 24 | running text                  |
+| `Small`   | 12 / 16                           | 12 / 16 | notes, help text, metadata    |
+| `Caption` | 12 / 16, uppercase, +4 % tracking | same    | labels, overlines             |
 
-Un style `Hn` **est** un `<hn>` : ce qui ressemble à un titre sans en être un — un prix, un chiffre clé, un logo — ne porte pas un style de titre. Si le produit en a besoin, un huitième style `Emphasis`, même rendu que `H4` et aucun rôle de titre, s'ajoute avec une ligne dans la `Synthèse`. Le corps de texte ne descend jamais sous 16 ; le 12 est réservé aux mentions.
+An `Hn` style **is** an `<hn>`: whatever looks like a heading without being one — a price, a key figure, a logo — does not carry a heading style. If the product needs it, an eighth `Emphasis` style, same rendering as `H4` and no heading role, is added with a line in the `Summary`. Body text never goes below 16; 12 is reserved for notes.
 
 ---
 
-## 3. Icônes — importées, jamais dessinées
+## 3. Icons — imported, never drawn
 
-**Question de cadrage :** quelle librairie ? Recommander **Material Design Icons** (Google). Alternatives acceptables si l'utilisateur les préfère : Lucide, Phosphor, Heroicons. Une seule librairie par produit, variante unique (`filled` ou `outlined`, pas les deux).
+**Scoping question:** which library? Recommend **Material Design Icons** (Google). Acceptable alternatives if the user prefers them: Lucide, Phosphor, Heroicons. One library per product, one variant (`filled` or `outlined`, not both).
 
-Un glyphe dessiné à la main est une dette : hors grille optique, introuvable dans le code, refait à chaque projet. Même pour « faire plus perso ».
+A hand-drawn glyph is debt: off the optical grid, unfindable in code, redone on every project. Even "to feel more personal".
 
-Recette d'import, glyphe par glyphe :
+Import recipe, glyph by glyph:
 
 ```bash
-# Material Design Icons, variante filled
+# Material Design Icons, filled variant
 curl -sfL -o <name>.svg "https://cdn.jsdelivr.net/npm/@material-design-icons/svg/filled/<name>.svg"
 # Lucide
 curl -sfL -o <name>.svg "https://cdn.jsdelivr.net/npm/lucide-static/icons/<name>.svg"
 ```
 
-Puis `upload_assets` (`count` = nombre de fichiers, `Content-Type: image/svg+xml`) : chaque SVG arrive en arbre de vecteurs sur la page courante. Un script `use_figma` transforme chaque arbre en `COMPONENT` de 24 × 24, contraintes des vecteurs en `SCALE`, remplissage lié à `color/neutral-1000`, puis `figma.combineAsVariants` en un jeu `Icon` avec la propriété `Name = <nom exact de la librairie>`. Trois tailles à l'usage : 16 dans un bouton, 20 dans un contrôle, 24 en navigation.
+Then `upload_assets` (`count` = number of files, `Content-Type: image/svg+xml`): each SVG lands as a vector tree on the current page. A `use_figma` script turns each tree into a 24 × 24 `COMPONENT`, vector constraints set to `SCALE`, fill bound to `color/neutral-1000`, then `figma.combineAsVariants` into an `Icon` set with the property `Name = <exact library name>`. Three sizes in use: 16 inside a button, 20 inside a control, 24 in navigation.
 
-**L'icône prend la couleur du texte qu'elle accompagne**, en réutilisant sa variable par dérogation d'instance.
+**The icon takes the color of the text it sits next to**, by reusing that text's variable through an instance override.
 
 ---
 
-## 4. Atomes — les composants que tout produit possède
+## 4. Atoms — the components every product has
 
-Chaque atome est un jeu de variantes. **Le jeu est en auto-layout, retour à la ligne, hug sur les deux axes, avec un padding `space/24` et un écart `space/16`**, pour qu'aucune variante ne soit coupée ni étirée ; chaque variante garde une largeur `FIXED` (`audits.md` §3). Les états obligatoires sont ceux du tableau ; on n'en retire pas.
+Every atom is a variant set. **The set is in auto-layout, wrapping, hugging both axes, with a `space/24` padding and a `space/16` gap**, so that no variant is clipped or stretched; every variant keeps a `FIXED` width (`audits.md` §3). The mandatory states are those of the table; none is removed.
 
-| Atome      | Propriétés                                                                                                  |
+| Atom       | Properties                                                                                                  |
 | ---------- | ----------------------------------------------------------------------------------------------------------- |
 | `Button`   | `Style = Primary \| Secondary \| Ghost` · `Size = M \| S` · `State = Default \| Hover \| Focus \| Disabled` |
 | `Link`     | `State = Default \| Hover \| Focus`                                                                         |
 | `Input`    | `Type = Text \| Textarea \| Select` · `State = Default \| Focus \| Filled \| Error \| Success \| Disabled`  |
 | `Checkbox` | `Checked = Off \| On` · `State = Default \| Focus \| Disabled`                                              |
-| `Radio`    | idem                                                                                                        |
-| `Toggle`   | idem                                                                                                        |
+| `Radio`    | same                                                                                                        |
+| `Toggle`   | same                                                                                                        |
 | `Tag`      | `Tone = Neutral \| Primary \| Success \| Error`                                                             |
-| `Message`  | `Tone = Success \| Error` — le texte d'aide sous un champ, la bannière d'un formulaire                      |
+| `Message`  | `Tone = Success \| Error` — the help text under a field, the banner of a form                               |
 
-Recettes qui évitent de tout redessiner :
+Recipes that avoid redrawing everything:
 
-- `Button` : padding `space/12` × `space/24` en M, `space/8` × `space/16` en S ; écart interne `space/8` ; rayon des contrôles ; libellé en `Body` (M) ou `Small` (S). Un emplacement `Icon` **visible dans le master**, masqué par dérogation sur les instances qui n'en veulent pas — un enfant masqué dans le master n'existe pas pour ses instances.
-- `Hover` : fond `color/primary-hover` pour Primary ; `color/neutral-100` pour Secondary et Ghost. `Focus` : anneau de 2 px en `color/primary` à l'extérieur, jamais une suppression du contour. `Disabled` : `color/neutral-300` sur `color/neutral-100`, curseur sans effet.
-- `Input` : fond `color/neutral-0`, bordure 1 px `color/neutral-300`, `Focus` en `color/primary`, `Error` en `color/error` avec `Message`, `Success` en `color/success`. La valeur remplit la largeur : une instance s'étire dans son parent sans réglage. `Textarea` = même coquille, texte ancré en haut, hauteur `space/128`.
+- `Button`: padding `space/12` × `space/24` in M, `space/8` × `space/16` in S; inner gap `space/8`; the controls radius; label in `Body` (M) or `Small` (S). An `Icon` slot **visible in the master**, hidden by override on the instances that do not want it — a child hidden in the master does not exist for its instances.
+- `Hover`: `color/primary-hover` background for Primary; `color/neutral-100` for Secondary and Ghost. `Focus`: a 2 px ring in `color/primary` on the outside, never a removed outline. `Disabled`: `color/neutral-300` on `color/neutral-100`, cursor with no effect.
+- `Input`: `color/neutral-0` background, 1 px `color/neutral-300` border, `Focus` in `color/primary`, `Error` in `color/error` with a `Message`, `Success` in `color/success`. The value fills the width: an instance stretches inside its parent with no setting. `Textarea` = same shell, text anchored at the top, height `space/128`.
 
 ---
 
-## 5. Contrôle de sortie de l'UI kit
+## 5. UI kit exit check
 
-Avant de passer aux composants — dans un appel séparé de toute écriture :
+Before moving on to the components — in a call separate from any write:
 
-- [ ] `audits.md` §1 sur la Section `UI Kit` : aucune valeur hors variable, aucun texte sans style
-- [ ] `audits.md` §3 : aucun jeu de variantes coupé ou étiré
-- [ ] `audits.md` §9 : contraste de `color/neutral-1000` sur `neutral-0`, de `neutral-0` sur `primary`, de `success` et `error` sur `neutral-0`
-- [ ] Capture de la Section `UI Kit` regardée : toutes les variantes visibles, lisibles, alignées
+- [ ] `audits.md` §1 on the `UI Kit` Section: no value outside a variable, no text without a style
+- [ ] `audits.md` §3: no variant set clipped or stretched
+- [ ] `audits.md` §9: contrast of `color/neutral-1000` on `neutral-0`, of `neutral-0` on `primary`, of `success` and `error` on `neutral-0`
+- [ ] Screenshot of the `UI Kit` Section looked at: every variant visible, legible, aligned
